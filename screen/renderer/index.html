@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' blob: data:; media-src file: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' blob: data:">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Мои скриншоты</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-theme="dark">
+<div id="app">
+  <aside id="side">
+    <div class="brand"><img class="logo" src="assets/icon-128.png" alt=""><span data-i18n="app.name">Мои скриншоты</span></div>
+    <nav id="nav">
+      <button data-page="capture" class="active" data-i18n="nav.capture">Снимок</button>
+      <button data-page="series" data-i18n="nav.series">Серия ЛР</button>
+      <button data-page="record" data-i18n="nav.record">Запись</button>
+      <button data-page="video" data-i18n="nav.video">Видео</button>
+      <button data-page="editor" data-i18n="nav.editor">Редактор</button>
+      <button data-page="history" data-i18n="nav.history">История</button>
+      <button data-page="invert" data-i18n="nav.invert">Негатив</button>
+      <button data-page="settings" data-i18n="nav.settings">Настройки</button>
+    </nav>
+    <div class="side-foot"><span id="ver"></span></div>
+  </aside>
+
+  <main id="main">
+    <!-- ===== Снимок ===== -->
+    <section id="page-capture" class="page active">
+      <h1 data-i18n="cap.title">Сделать снимок</h1>
+      <div class="cards">
+        <button class="card" data-capture="region">
+          <b data-i18n="cap.region">Выделить область</b><span data-i18n="cap.region.d">Тянешь рамку мышью</span><kbd data-hk="region"></kbd>
+        </button>
+        <button class="card" data-capture="screen">
+          <b data-i18n="cap.screen">Весь экран</b><span data-i18n="cap.screen.d">Монитор, на котором мышь</span><kbd data-hk="screen"></kbd>
+        </button>
+        <button class="card" data-capture="window">
+          <b data-i18n="cap.window">Активное окно</b><span data-i18n="cap.window.d">Окно, которое сейчас в фокусе</span><kbd data-hk="window"></kbd>
+        </button>
+      </div>
+
+      <div class="panel">
+        <h2 data-i18n="cap.after">После снимка</h2>
+        <div class="row-opts">
+          <label class="chk"><input type="checkbox" data-quick="copyToClipboard"> <span data-i18n="cap.copy">Копировать в буфер</span></label>
+          <label class="chk"><input type="checkbox" data-quick="autosave"> <span data-i18n="cap.autosave">Сохранять в папку</span></label>
+          <label class="chk"><input type="checkbox" data-quick="openEditor"> <span data-i18n="cap.openEditor">Открывать редактор</span></label>
+          <label class="chk"><input type="checkbox" data-quick="notify"> <span data-i18n="cap.notify">Показывать уведомление</span></label>
+          <label class="inl"><span data-i18n="cap.delay">Задержка, сек</span> <input type="number" min="0" max="30" data-quick="delaySec" class="num"></label>
+        </div>
+        <p class="muted"><span data-i18n="cap.folder">Папка:</span> <span id="cap-folder"></span></p>
+      </div>
+
+      <div class="panel" id="last-panel" hidden>
+        <h2 data-i18n="cap.last">Последний снимок</h2>
+        <div class="last">
+          <img id="last-img" alt="">
+          <div class="last-meta">
+            <div id="last-info"></div>
+            <div class="btns">
+              <button class="btn primary" id="last-edit" data-i18n="cap.edit">Редактировать</button>
+              <button class="btn" id="last-copy" data-i18n="cap.copyBtn">Копировать</button>
+              <button class="btn" id="last-show" data-i18n="cap.show">Показать в папке</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Серия ЛР ===== -->
+    <section id="page-series" class="page">
+      <h1 data-i18n="ser.title">Серия для лабораторной</h1>
+      <p class="muted" data-i18n="ser.intro">Снимки получают имена вида ЛР5_шаг3, рисунки нумеруются сквозно, к каждому готовится подпись «Рисунок N — …». Рядом с файлами лежит series.json: его читает «Отчётник».</p>
+
+      <div id="ser-none">
+        <div class="panel">
+          <h2 data-i18n="ser.new">Новая серия</h2>
+          <div class="form">
+            <label><span data-i18n="ser.prefix">Приставка</span> <input id="ser-prefix" maxlength="12"></label>
+            <label><span data-i18n="ser.lab">Номер работы</span> <input id="ser-lab" maxlength="12" data-i18n-ph="ser.lab.ph" placeholder="например, 5"></label>
+            <label><span data-i18n="ser.disc">Дисциплина (необязательно)</span> <input id="ser-disc" maxlength="60" data-i18n-ph="ser.disc.ph" placeholder="например, Схемотехника"></label>
+            <label><span data-i18n="ser.fig">Номер первого рисунка</span> <input id="ser-fig" type="number" min="1" max="999" value="1" class="num"></label>
+          </div>
+          <p class="muted"><span data-i18n="ser.preview">Первый шаг будет называться:</span> <b id="ser-preview"></b></p>
+          <p class="muted"><span data-i18n="ser.willSave">Папка серии:</span> <span id="ser-willsave"></span></p>
+          <div class="btns"><button class="btn primary" id="ser-create" data-i18n="ser.start">Начать серию</button></div>
+        </div>
+        <div class="panel">
+          <h2 data-i18n="ser.continue">Продолжить серию</h2>
+          <div class="row-opts">
+            <select id="ser-recent"></select>
+            <button class="btn" id="ser-open-recent" data-i18n="ser.openRecent">Продолжить выбранную</button>
+            <button class="btn" id="ser-open-folder" data-i18n="ser.openFolder">Открыть папку серии…</button>
+          </div>
+          <p class="muted" id="ser-recent-empty" hidden data-i18n="ser.noRecent">Прошлых серий пока нет.</p>
+        </div>
+      </div>
+
+      <div id="ser-active" hidden>
+        <div class="panel ser-head">
+          <div>
+            <div class="ser-title" id="ser-title"></div>
+            <div class="muted" id="ser-next"></div>
+            <div class="muted ser-path" id="ser-path"></div>
+          </div>
+          <div class="btns">
+            <button class="btn primary" id="ser-step" data-i18n="ser.step">Сделать шаг</button>
+            <select id="ser-mode" data-i18n-title="ser.mode.t" title="Что снимать на шаге">
+              <option value="region" data-i18n="ser.mode.region">Область</option>
+              <option value="screen" data-i18n="ser.mode.screen">Весь экран</option>
+              <option value="window" data-i18n="ser.mode.window">Окно</option>
+            </select>
+            <kbd data-hk="seriesStep"></kbd>
+          </div>
+        </div>
+        <div class="btns ser-tools">
+          <button class="btn sm" id="ser-copycaps" data-i18n="ser.copyCaps">Копировать подписи</button>
+          <button class="btn sm" id="ser-openfolder" data-i18n="ser.folder">Открыть папку серии</button>
+          <button class="btn sm" id="ser-close" data-i18n="ser.close">Завершить серию</button>
+        </div>
+        <div id="ser-list" class="steps"></div>
+        <div id="ser-empty" class="empty" hidden><p data-i18n="ser.empty">Шагов пока нет. Нажми «Сделать шаг» или горячую клавишу.</p></div>
+      </div>
+    </section>
+
+    <!-- ===== Редактор ===== -->
+    <section id="page-editor" class="page">
+      <div id="ed-empty" class="empty">
+        <p data-i18n="ed.empty">Здесь откроется снимок для редактирования.</p>
+        <div class="btns">
+          <button class="btn primary" id="ed-open-file" data-i18n="ed.openFile">Открыть изображение…</button>
+          <button class="btn" data-goto="history" data-i18n="ed.fromHistory">Выбрать из истории</button>
+        </div>
+      </div>
+      <div id="ed-wrap" hidden>
+        <div id="ed-tools" class="toolbar">
+          <div class="grp" id="tool-btns">
+            <button data-tool="arrow" class="tb active" data-i18n="tool.arrow" data-i18n-title="tool.arrow">↗ Стрелка</button>
+            <button data-tool="line" class="tb" data-i18n="tool.line" data-i18n-title="tool.line">╱ Линия</button>
+            <button data-tool="rect" class="tb" data-i18n="tool.rect" data-i18n-title="tool.rect">▭ Рамка</button>
+            <button data-tool="ellipse" class="tb" data-i18n="tool.ellipse" data-i18n-title="tool.ellipse">◯ Овал</button>
+            <button data-tool="pen" class="tb" data-i18n="tool.pen" data-i18n-title="tool.pen">✎ Карандаш</button>
+            <button data-tool="marker" class="tb" data-i18n="tool.marker" data-i18n-title="tool.marker">▮ Маркер</button>
+            <button data-tool="text" class="tb" data-i18n="tool.text" data-i18n-title="tool.text">T Текст</button>
+            <button data-tool="step" class="tb" data-i18n="tool.step" data-i18n-title="tool.step">① Номер</button>
+            <button data-tool="pixel" class="tb" data-i18n="tool.pixel" data-i18n-title="tool.pixel">▒ Пиксели</button>
+            <button data-tool="blur" class="tb" data-i18n="tool.blur" data-i18n-title="tool.blur">◌ Размытие</button>
+            <button data-tool="invert" class="tb" data-i18n="tool.invert" data-i18n-title="tool.invert">◐ Негатив области</button>
+            <button data-tool="crop" class="tb" data-i18n="tool.crop" data-i18n-title="tool.crop">⛶ Обрезка</button>
+          </div>
+        </div>
+        <div class="toolbar">
+          <div class="grp">
+            <input type="color" id="ed-color" value="#ef4444" data-i18n-title="ed.color" title="Цвет">
+            <div class="swatches" id="ed-swatches"></div>
+            <label class="inl"><span data-i18n="ed.width">Толщина</span> <input type="range" id="ed-width" min="1" max="24" value="4"></label>
+            <label class="chk"><input type="checkbox" id="ed-fill"> <span data-i18n="ed.fill">Заливка</span></label>
+          </div>
+          <div class="grp">
+            <button class="btn sm" id="ed-undo" title="Ctrl+Z" data-i18n="ed.undo">Отменить</button>
+            <button class="btn sm" id="ed-redo" title="Ctrl+Y" data-i18n="ed.redo">Вернуть</button>
+            <button class="btn sm" id="ed-invert-all" data-i18n="ed.invertAll" data-i18n-title="ed.invertAll.t" title="Инвертировать цвета всего снимка">Негатив всего снимка</button>
+            <button class="btn sm" id="ed-zoom">Масштаб: по окну</button>
+          </div>
+          <div class="grp right">
+            <button class="btn sm" id="ed-copy" title="Ctrl+C" data-i18n="ed.copy">Копировать</button>
+            <button class="btn sm" id="ed-saveas" data-i18n="ed.saveAs">Сохранить как…</button>
+            <button class="btn sm primary" id="ed-save" title="Ctrl+S" data-i18n="ed.save">Сохранить</button>
+          </div>
+        </div>
+        <div id="ed-stage"><canvas id="ed-canvas"></canvas></div>
+        <div id="ed-status" class="status"></div>
+      </div>
+    </section>
+
+    <!-- ===== Запись экрана ===== -->
+    <section id="page-record" class="page">
+      <div class="head-row">
+        <h1 data-i18n="rec.title">Запись экрана</h1>
+        <button class="btn" id="rec-openfolder" data-i18n="rec.openFolder">Открыть папку записей</button>
+      </div>
+      <div class="panel" id="rec-idle">
+        <h2 data-i18n="rec.source">Что записывать</h2>
+        <div class="segs" id="rec-modes" role="tablist">
+          <button data-mode="screen" data-i18n="rec.mode.screen">Весь экран</button>
+          <button data-mode="window" data-i18n="rec.mode.window">Окно</button>
+          <button data-mode="region" data-i18n="rec.mode.region">Область</button>
+        </div>
+        <div class="frow" id="rec-winrow" hidden>
+          <span data-i18n="rec.window">Окно для записи</span>
+          <span class="inl"><select id="rec-window"></select> <button class="btn sm" id="rec-winrefresh" data-i18n="rec.refresh">Обновить</button></span>
+        </div>
+        <div class="row-opts col rec-quick">
+          <label class="chk"><input type="checkbox" data-rec-quick="recSystemAudio"> <span data-i18n="rs.recSystemAudio">Звук системы</span></label>
+          <label class="chk"><input type="checkbox" data-rec-quick="recMic"> <span data-i18n="rs.recMic">Микрофон</span></label>
+          <label class="chk"><input type="checkbox" data-rec-quick="recWebcam"> <span data-i18n="rs.recWebcam">Веб-камера в углу</span></label>
+        </div>
+        <div class="rec-go">
+          <button class="btn primary big" id="rec-start"><span data-i18n="rec.start">Начать запись</span> <kbd data-hk="recToggle"></kbd></button>
+          <span class="muted" id="rec-sum"></span>
+        </div>
+      </div>
+      <div class="panel rec-live" id="rec-live" hidden>
+        <div class="rec-live-top"><span class="rec-dot" id="rec-dot"></span><span id="rec-time" class="rec-time">00:00</span><span id="rec-state" class="muted"></span></div>
+        <div class="muted" id="rec-meta"></div>
+        <div class="bar" id="rec-bar" hidden><i id="rec-bar-i"></i></div>
+        <div class="btns">
+          <button class="btn" id="rec-pause"><span data-i18n="rec.pause">Пауза</span> <kbd data-hk="recPause"></kbd></button>
+          <button class="btn primary" id="rec-stop"><span data-i18n="rec.stop">Остановить</span> <kbd data-hk="recToggle"></kbd></button>
+        </div>
+      </div>
+      <h2 class="sec" data-i18n="rec.library">Записи</h2>
+      <div id="rec-list" class="rec-list"></div>
+      <div id="rec-empty" class="empty" hidden><p data-i18n="rec.empty">Записей пока нет. Нажми «Начать запись» или горячую клавишу.</p></div>
+    </section>
+
+    <!-- ===== Видеоредактор ===== -->
+    <section id="page-video" class="page">
+      <div class="head-row">
+        <h1 data-i18n="vd.title">Видеоредактор</h1>
+        <div class="btns">
+          <button class="btn" id="vd-add" data-i18n="vd.add">Добавить видео</button>
+          <button class="btn" id="vd-addlib" data-i18n="vd.addlib">Из записей</button>
+        </div>
+      </div>
+      <div id="vd-empty" class="empty"><p data-i18n="vd.empty">Добавь видео с компьютера или выбери запись экрана, чтобы обрезать, склеить, ускорить и подписать.</p></div>
+      <div id="vd-main" hidden>
+        <div class="vd-grid">
+          <div class="vd-left">
+            <div class="vd-stage" id="vd-stage">
+              <div class="vd-frame" id="vd-frame">
+                <video id="vd-video" playsinline preload="auto"></video>
+                <canvas id="vd-ovc"></canvas>
+                <div id="vd-ovl"></div>
+              </div>
+            </div>
+            <div class="vd-transport">
+              <button class="btn sm" id="vd-play" title="Space"><span data-i18n="vd.play">Воспроизвести</span></button>
+              <span class="vd-time"><b id="vd-cur">0:00.0</b> / <span id="vd-tot">0:00.0</span></span>
+              <span class="grow"></span>
+              <button class="btn sm" id="vd-undo" data-i18n-title="vd.undo" title="Ctrl+Z">↶</button>
+              <button class="btn sm" id="vd-redo" data-i18n-title="vd.redo" title="Ctrl+Y">↷</button>
+              <label class="inl muted"><span data-i18n="vd.zoom">Масштаб</span> <input type="range" id="vd-zoom" min="0.25" max="8" step="0.05" value="1"></label>
+            </div>
+            <div class="vd-tools">
+              <button class="btn sm" id="vd-split"><span data-i18n="vd.split">Разрезать</span> <kbd>S</kbd></button>
+              <button class="btn sm" id="vd-markin"><span data-i18n="vd.markin">Начало куска</span> <kbd>I</kbd></button>
+              <button class="btn sm" id="vd-markout"><span data-i18n="vd.markout">Конец куска</span> <kbd>O</kbd></button>
+              <button class="btn sm" id="vd-cut"><span data-i18n="vd.cut">Вырезать кусок</span> <kbd>X</kbd></button>
+              <button class="btn sm danger" id="vd-del"><span data-i18n="vd.del">Удалить</span> <kbd>Del</kbd></button>
+              <span class="muted small" id="vd-marks"></span>
+            </div>
+            <div class="vd-timeline" id="vd-tl">
+              <div class="vd-scroll" id="vd-scroll">
+                <div class="vd-track" id="vd-track">
+                  <div class="vd-ruler" id="vd-ruler"></div>
+                  <div class="vd-lane" id="vd-lane-clips"></div>
+                  <div class="vd-lane vd-lane-ov" id="vd-lane-ov"></div>
+                  <div class="vd-range" id="vd-range" hidden></div>
+                  <div class="vd-head" id="vd-head"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="vd-right">
+            <div class="panel">
+              <h2 data-i18n="vd.clip">Клип</h2>
+              <div id="vd-clip-none" class="muted small" data-i18n="vd.clip.none">Выбери клип на дорожке.</div>
+              <div id="vd-clip-box" hidden>
+                <div class="muted small" id="vd-clip-name"></div>
+                <div class="frow"><span data-i18n="vd.speed">Скорость</span><span class="fc"><select id="vd-speed"></select></span></div>
+                <div class="frow"><span data-i18n="vd.volume">Громкость</span><span class="fc"><input type="range" id="vd-vol" min="0" max="200" step="5"><span class="muted" id="vd-vol-v" style="min-width:44px"></span></span></div>
+                <div class="frow"><span data-i18n="vd.mute">Без звука</span><span class="fc"><input type="checkbox" id="vd-mute"></span></div>
+                <div class="btns">
+                  <button class="btn sm" id="vd-left" data-i18n-title="vd.left" title="">←</button>
+                  <button class="btn sm" id="vd-right" data-i18n-title="vd.right" title="">→</button>
+                  <button class="btn sm" id="vd-trim-in" data-i18n="vd.trimin">Начало здесь</button>
+                  <button class="btn sm" id="vd-trim-out" data-i18n="vd.trimout">Конец здесь</button>
+                </div>
+              </div>
+            </div>
+            <div class="panel">
+              <h2 data-i18n="vd.over">Надписи и выделения</h2>
+              <div class="btns">
+                <button class="btn sm" id="vd-add-text" data-i18n="vd.add.text">Текст</button>
+                <button class="btn sm" id="vd-add-arrow" data-i18n="vd.add.arrow">Стрелка</button>
+                <button class="btn sm" id="vd-add-blur" data-i18n="vd.add.blur">Размытие</button>
+              </div>
+              <div id="vd-ov-none" class="muted small" data-i18n="vd.ov.none">Добавь надпись, стрелку или размой часть кадра на нужное время.</div>
+              <div id="vd-ov-box" hidden>
+                <div class="frow" id="vd-ov-text-row"><span data-i18n="vd.ov.text">Текст</span><span class="fc"><textarea id="vd-ov-text" rows="2" maxlength="300"></textarea></span></div>
+                <div class="frow" id="vd-ov-color-row"><span data-i18n="vd.ov.color">Цвет</span><span class="fc"><input type="color" id="vd-ov-color"></span></div>
+                <div class="frow" id="vd-ov-size-row"><span id="vd-ov-size-l" data-i18n="vd.ov.size">Размер</span><span class="fc"><input type="range" id="vd-ov-size" min="2" max="30" step="1"></span></div>
+                <div class="frow" id="vd-ov-bg-row"><span data-i18n="vd.ov.bg">Подложка</span><span class="fc"><input type="checkbox" id="vd-ov-bg"></span></div>
+                <div class="frow"><span data-i18n="vd.ov.start">Показать с, с</span><span class="fc"><input type="number" class="num" id="vd-ov-start" min="0" step="0.1"></span></div>
+                <div class="frow"><span data-i18n="vd.ov.end">до, с</span><span class="fc"><input type="number" class="num" id="vd-ov-end" min="0" step="0.1"></span></div>
+                <div class="btns"><button class="btn sm danger" id="vd-ov-del" data-i18n="vd.del2">Удалить</button></div>
+              </div>
+            </div>
+            <div class="panel">
+              <h2 data-i18n="vd.export">Сохранить видео</h2>
+              <div class="frow"><span data-i18n="vd.fmt">Формат</span><span class="fc"><select id="vd-fmt"><option value="mp4">MP4</option><option value="webm">WebM</option><option value="gif">GIF</option></select></span></div>
+              <div class="vd-vid-opts">
+                <div class="frow"><span data-i18n="vd.res">Размер кадра</span><span class="fc"><select id="vd-res"><option value="0" data-i18n="vd.res.orig">Как в исходнике</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option></select></span></div>
+                <div class="frow"><span data-i18n="vd.fps">Кадров в секунду</span><span class="fc"><select id="vd-fps"><option>15</option><option>24</option><option selected>30</option><option>60</option></select></span></div>
+                <div class="frow"><span data-i18n="vd.q">Качество</span><span class="fc"><select id="vd-q"><option value="low" data-i18n="rs.recQuality.low">Низкое</option><option value="medium" selected data-i18n="rs.recQuality.medium">Среднее</option><option value="high" data-i18n="rs.recQuality.high">Высокое</option></select></span></div>
+              </div>
+              <div class="vd-gif-opts" hidden>
+                <div class="frow"><span data-i18n="vd.gifw">Ширина GIF</span><span class="fc"><select id="vd-gifw"><option>320</option><option selected>480</option><option>640</option><option>800</option></select></span></div>
+                <div class="frow"><span data-i18n="vd.giffps">Кадров в секунду</span><span class="fc"><select id="vd-giffps"><option>8</option><option>10</option><option selected>12</option><option>15</option><option>20</option></select></span></div>
+              </div>
+              <div class="muted small" id="vd-est"></div>
+              <div class="bar" id="vd-bar" hidden><i id="vd-bar-i"></i></div>
+              <div class="btns">
+                <button class="btn primary" id="vd-export" data-i18n="vd.export.go">Сохранить…</button>
+                <button class="btn" id="vd-cancel" hidden data-i18n="vd.cancel">Отмена</button>
+                <button class="btn" id="vd-frame-png" data-i18n="vd.png">Кадр в PNG</button>
+              </div>
+              <p class="hint" data-i18n="vd.note">Исходные файлы не меняются: результат сохраняется отдельным файлом.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <div id="vd-libmodal" hidden><div class="modal-box"><div class="modal-head"><b data-i18n="vd.libpick">Выбери записи</b><button class="btn sm" id="vd-lib-close" data-i18n="modal.close">Закрыть</button></div><div id="vd-lib-list" class="vd-lib-list"></div></div></div>
+
+    <!-- ===== История ===== -->
+    <section id="page-history" class="page">
+      <div class="head-row">
+        <h1 data-i18n="hist.title">История снимков</h1>
+        <button class="btn" id="hist-clear" data-i18n="hist.clear">Очистить историю</button>
+      </div>
+      <div id="hist-grid" class="grid"></div>
+      <div id="hist-empty" class="empty" hidden><p data-i18n="hist.empty">Пока нет снимков. Нажми PrintScreen или кнопку на вкладке «Снимок».</p></div>
+    </section>
+
+    <!-- ===== Негатив ===== -->
+    <section id="page-invert" class="page">
+      <h1 data-i18n="inv.title">Негатив изображения</h1>
+      <p class="muted" data-i18n="inv.intro">Инвертирует цвета: чёрное становится белым, белое чёрным. Прозрачность сохраняется. Файлы можно перетащить в это окно.</p>
+
+      <div id="inv-drop" class="drop">
+        <div class="btns">
+          <button class="btn primary" id="inv-open" data-i18n="inv.open">Открыть файлы…</button>
+          <button class="btn" id="inv-paste" data-i18n="inv.paste">Вставить из буфера</button>
+          <button class="btn" id="inv-hist" data-i18n="inv.hist">Взять из истории</button>
+        </div>
+        <span class="muted" data-i18n="inv.drop">или перетащи картинки сюда</span>
+      </div>
+
+      <div id="inv-work" hidden>
+        <div class="inv-top">
+          <div class="modes">
+            <label class="chk"><input type="radio" name="inv-mode" value="full" checked> <span data-i18n="inv.full">Полный негатив</span></label>
+            <label class="chk" data-i18n-title="inv.light.t" title="Светлое станет тёмным, а цвета останутся: удобно для тёмной темы"><input type="radio" name="inv-mode" value="lightness"> <span data-i18n="inv.light">Только яркость (цвета сохраняются)</span></label>
+            <label class="chk"><input type="checkbox" id="inv-gray"> <span data-i18n="inv.gray">Сначала сделать чёрно-белым</span></label>
+          </div>
+          <div class="btns">
+            <button class="btn" id="inv-copy" data-i18n="inv.copy">Копировать результат</button>
+            <button class="btn" id="inv-saveas" data-i18n="inv.saveAs">Сохранить как…</button>
+            <button class="btn" id="inv-toeditor" data-i18n="inv.toEditor">В редактор</button>
+          </div>
+        </div>
+
+        <div class="inv-cols">
+          <div class="inv-list" id="inv-list"></div>
+          <div class="inv-view">
+            <div class="pv"><div class="cap" data-i18n="inv.before">Было</div><div class="pvbox"><canvas id="inv-before"></canvas></div></div>
+            <div class="pv"><div class="cap" data-i18n="inv.after">Стало</div><div class="pvbox"><canvas id="inv-after"></canvas></div></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2 data-i18n="inv.batchTitle">Обработать все файлы из списка</h2>
+          <div class="row-opts">
+            <label class="chk"><input type="radio" name="inv-out" value="same" checked> <span data-i18n="inv.outSame">Рядом с исходными (к имени добавится _negative)</span></label>
+            <label class="chk"><input type="radio" name="inv-out" value="folder"> <span data-i18n="inv.outFolder">В отдельную папку</span></label>
+            <button class="btn sm" id="inv-folder" data-i18n="inv.chooseFolder">Выбрать папку…</button>
+            <span class="muted" id="inv-folder-path"></span>
+          </div>
+          <div class="btns"><button class="btn primary" id="inv-batch" data-i18n="inv.batch">Обработать и сохранить</button><span id="inv-batch-status" class="muted"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Настройки ===== -->
+    <section id="page-settings" class="page">
+      <h1 data-i18n="set.title">Настройки</h1>
+      <div class="tabs" id="set-tabs" role="tablist">
+        <button data-tab="general" class="active" role="tab" data-i18n="set.tab.general">Основные</button>
+        <button data-tab="capture" role="tab" data-i18n="set.tab.capture">Съёмка</button>
+        <button data-tab="series" role="tab" data-i18n="set.tab.series">Серия ЛР</button>
+        <button data-tab="record" role="tab" data-i18n="set.tab.record">Запись</button>
+        <button data-tab="data" role="tab" data-i18n="set.tab.data">Данные</button>
+        <button data-tab="about" role="tab" data-i18n="set.tab.about">О программе</button>
+        <button data-tab="changelog" role="tab" data-i18n="set.tab.changelog">Что нового</button>
+      </div>
+
+      <!-- Основные -->
+      <div class="tabpane active" id="pane-general">
+        <div class="panel">
+          <h2 data-i18n="set.look">Внешний вид</h2>
+          <div class="form">
+            <label><span data-i18n="set.lang">Язык интерфейса</span>
+              <select id="set-lang"><option value="ru">Русский</option><option value="en">English</option></select></label>
+            <label><span data-i18n="set.theme">Тема</span>
+              <select id="set-theme">
+                <option value="dark" data-i18n="set.theme.dark">Тёмная</option>
+                <option value="light" data-i18n="set.theme.light">Светлая</option>
+                <option value="system" data-i18n="set.theme.system">Как в Windows</option>
+              </select></label>
+            <label><span data-i18n="set.accent">Цвет акцента</span>
+              <span class="accent-row"><span class="swatches" id="set-accent-sw"></span>
+              <input type="color" id="set-accent" value="#7c9cff">
+              <button class="btn sm" id="set-accent-reset" data-i18n="set.accent.reset">Сбросить</button></span></label>
+            <label><span data-i18n="set.scale">Масштаб интерфейса</span>
+              <select id="set-scale"><option value="90">90%</option><option value="100">100%</option><option value="110">110%</option><option value="125">125%</option><option value="150">150%</option></select></label>
+          </div>
+        </div>
+        <div class="panel">
+          <h2 data-i18n="set.program">Программа</h2>
+          <div class="row-opts col">
+            <label class="chk"><input type="checkbox" id="set-animations"> <span data-i18n="set.animations">Плавные переходы в интерфейсе</span></label>
+            <label class="chk"><input type="checkbox" id="set-rememberwin"> <span data-i18n="set.rememberwin">Помнить размер и место окна</span></label>
+            <label class="chk"><input type="checkbox" id="set-autostart"> <span data-i18n="set.autostart">Запускать вместе с Windows</span></label>
+            <label class="chk"><input type="checkbox" id="set-starthidden"> <span data-i18n="set.starthidden">При автозапуске прятать окно в трей</span></label>
+            <label class="chk"><input type="checkbox" id="set-closetray"> <span data-i18n="set.closetray">Закрытие окна сворачивает в трей</span></label>
+            <label class="chk"><input type="checkbox" id="set-notify"> <span data-i18n="set.notify">Показывать уведомления о снимках</span></label>
+            <label class="chk"><input type="checkbox" id="set-sound"> <span data-i18n="set.sound">Подавать звук при снимке</span></label>
+          </div>
+          <p class="muted" data-i18n="set.autostart.note">Автозапуск работает у установленной версии (Setup). У Portable путь к файлу может меняться.</p>
+        </div>
+      </div>
+
+      <!-- Съёмка -->
+      <div class="tabpane" id="pane-capture">
+        <div class="panel">
+          <h2 data-i18n="set.hotkeys">Горячие клавиши</h2>
+          <p class="muted" data-i18n="set.hotkeys.hint">Нажми на поле и сочетание клавиш. Backspace очищает поле. Глобальные клавиши работают, даже когда окно скрыто.</p>
+          <div class="form">
+            <label><span data-i18n="cap.region">Выделить область</span> <input class="hk" data-hk-field="region" readonly><span class="badge" data-hk-status="region"></span></label>
+            <label><span data-i18n="cap.screen">Весь экран</span> <input class="hk" data-hk-field="screen" readonly><span class="badge" data-hk-status="screen"></span></label>
+            <label><span data-i18n="cap.window">Активное окно</span> <input class="hk" data-hk-field="window" readonly><span class="badge" data-hk-status="window"></span></label>
+          </div>
+          <p class="muted" data-i18n="set.hotkeys.ps">Если PrintScreen «занят», в Windows 11 отключи «Использовать кнопку Print Screen для запуска снимка экрана» (Параметры → Специальные возможности → Клавиатура) или выбери другое сочетание.</p>
+          <div class="btns"><button class="btn sm" id="set-hk-reset" data-i18n="set.hotkeys.reset">Вернуть клавиши по умолчанию</button></div>
+        </div>
+        <div class="panel">
+          <h2 data-i18n="set.saving">Сохранение</h2>
+          <div class="form">
+            <label><span data-i18n="set.folder">Папка</span>
+              <input id="set-folder" readonly>
+              <button class="btn sm" id="set-folder-btn" data-i18n="set.choose">Выбрать…</button>
+              <button class="btn sm" id="set-folder-reset" data-i18n="set.default">По умолчанию</button>
+            </label>
+            <label><span data-i18n="set.datefolders">Подпапки по дате</span>
+              <select id="set-datefolders">
+                <option value="none" data-i18n="set.datefolders.none">Не создавать</option>
+                <option value="month" data-i18n="set.datefolders.month">По месяцам</option>
+                <option value="day" data-i18n="set.datefolders.day">По дням</option>
+              </select></label>
+            <label><span data-i18n="set.format">Формат</span>
+              <select id="set-format"><option value="png" data-i18n="set.format.png">PNG (без потерь)</option><option value="jpg" data-i18n="set.format.jpg">JPG (меньше размер)</option></select>
+            </label>
+            <label><span data-i18n="set.quality">Качество JPG</span> <input type="range" min="40" max="100" id="set-quality"><span id="set-quality-v" class="muted"></span></label>
+            <label><span data-i18n="set.template">Имя файла</span> <input id="set-template" spellcheck="false"></label>
+          </div>
+          <p class="muted"><span data-i18n="set.template.hint">В имени можно использовать: {yyyy} {MM} {dd} {HH} {mm} {ss} {mode}. Пример:</span> <b id="set-example"></b></p>
+          <p class="muted" data-i18n="set.template.note">Если «Сохранять в папку» выключено на вкладке «Снимок», снимки хранятся только в истории программы.</p>
+        </div>
+      </div>
+
+      <!-- Серия ЛР -->
+      <div class="tabpane" id="pane-series">
+        <div class="panel">
+          <h2 data-i18n="set.series">Серия для лабораторной</h2>
+          <div class="form">
+            <label><span data-i18n="set.series.hk">Горячая клавиша шага</span> <input class="hk" data-hk-field="seriesStep" readonly><span class="badge" data-hk-status="seriesStep"></span></label>
+            <label><span data-i18n="set.series.mode">Что снимать на шаге</span>
+              <select id="set-series-mode">
+                <option value="region" data-i18n="ser.mode.region">Область</option>
+                <option value="screen" data-i18n="ser.mode.screen">Весь экран</option>
+                <option value="window" data-i18n="ser.mode.window">Окно</option>
+              </select></label>
+            <label><span data-i18n="set.series.prefix">Приставка по умолчанию</span> <input id="set-series-prefix" maxlength="12"></label>
+            <label><span data-i18n="set.series.name">Шаблон имени шага</span> <input id="set-series-name" spellcheck="false"></label>
+            <label><span data-i18n="set.series.caption">Шаблон подписи</span> <input id="set-series-caption" spellcheck="false"></label>
+            <label><span data-i18n="set.series.root">Папка серий</span>
+              <input id="set-series-root" readonly>
+              <button class="btn sm" id="set-series-root-btn" data-i18n="set.choose">Выбрать…</button>
+              <button class="btn sm" id="set-series-root-reset" data-i18n="set.default">По умолчанию</button></label>
+            <label class="chk"><input type="checkbox" id="set-series-editor"> <span data-i18n="set.series.editor">Открывать редактор после шага</span></label>
+          </div>
+          <p class="muted"><span data-i18n="set.series.hint">В имени: {prefix} {lab} {step}. В подписи: {n} (номер рисунка) и {text} (описание). Пример:</span> <b id="set-series-example"></b></p>
+          <p class="muted" data-i18n="set.series.note">Шаг всегда сохраняется в папку серии, независимо от «Сохранять в папку».</p>
+        </div>
+      </div>
+
+      <!-- Запись экрана -->
+      <div class="tabpane" id="pane-record">
+        <div class="panel">
+          <h2 data-i18n="rs.g.hotkeys">Горячие клавиши записи</h2>
+          <div class="form">
+            <label><span data-i18n="rs.hk.recToggle">Начать / остановить запись</span> <input class="hk" data-hk-field="recToggle" readonly><span class="badge" data-hk-status="recToggle"></span></label>
+            <label><span data-i18n="rs.hk.recPause">Пауза / продолжить</span> <input class="hk" data-hk-field="recPause" readonly><span class="badge" data-hk-status="recPause"></span></label>
+            <label><span data-i18n="rs.hk.recRegion">Записать выделенную область</span> <input class="hk" data-hk-field="recRegion" readonly><span class="badge" data-hk-status="recRegion"></span></label>
+          </div>
+        </div>
+        <div id="rs-fields"></div>
+      </div>
+
+      <!-- Данные -->
+      <div class="tabpane" id="pane-data">
+        <div class="panel">
+          <h2 data-i18n="set.data">Данные программы</h2>
+          <p><span class="muted" data-i18n="set.data.dir">Папка данных:</span> <span id="set-datadir"></span></p>
+          <div class="btns"><button class="btn sm" id="set-opendata" data-i18n="set.data.open">Открыть папку данных</button></div>
+          <div class="form">
+            <label><span data-i18n="set.history.limit">Хранить в истории не более</span>
+              <select id="set-histlimit"><option value="100">100</option><option value="500">500</option><option value="2000">2000</option></select></label>
+          </div>
+          <p class="muted" data-i18n="set.history.note">Лишние старые записи уходят из истории, файлы в твоей папке сохранения остаются на месте.</p>
+          <div class="btns"><button class="btn sm danger" id="set-clearhist" data-i18n="hist.clear">Очистить историю</button></div>
+        </div>
+        <div class="panel">
+          <h2 data-i18n="set.backup">Резервные копии</h2>
+          <p class="muted" data-i18n="set.backup.note">В копию входят настройки и история. Сами снимки лежат в твоих папках и в копию не входят.</p>
+          <div class="row-opts col">
+            <label class="chk"><input type="checkbox" id="set-autobackup"> <span data-i18n="set.backup.auto">Делать копию раз в сутки при запуске (хранятся последние 10)</span></label>
+          </div>
+          <p><span class="muted" data-i18n="set.backup.last">Последняя копия:</span> <span id="set-lastbackup"></span></p>
+          <div class="btns">
+            <button class="btn sm primary" id="set-backup-now" data-i18n="set.backup.now">Создать копию сейчас</button>
+            <button class="btn sm" id="set-backup-restore" data-i18n="set.backup.restore">Восстановить из копии…</button>
+            <button class="btn sm" id="set-backup-open" data-i18n="set.backup.open">Открыть папку копий</button>
+          </div>
+        </div>
+        <div class="panel">
+          <h2 data-i18n="set.transfer">Перенос и сброс настроек</h2>
+          <div class="btns">
+            <button class="btn sm" id="set-export" data-i18n="set.export">Экспорт настроек…</button>
+            <button class="btn sm" id="set-import" data-i18n="set.import">Импорт настроек…</button>
+            <button class="btn sm danger" id="set-reset" data-i18n="set.reset">Сбросить настройки</button>
+          </div>
+          <p class="muted" data-i18n="set.reset.note">Перед импортом и сбросом программа сама делает резервную копию.</p>
+        </div>
+      </div>
+
+      <!-- О программе -->
+      <div class="tabpane" id="pane-about">
+        <div class="about-card">
+          <img class="about-icon" src="assets/icon-128.png" alt="">
+          <div class="about-body">
+            <div class="about-name" data-i18n="app.name">Мои скриншоты</div>
+            <div class="about-ver"><span data-i18n="about.version">Версия</span> <span id="ab-ver"></span> <span class="tag-beta" id="ab-beta" hidden data-i18n="about.beta">бета</span></div>
+            <div class="about-desc" data-i18n="about.desc">Мои скриншоты снимают область, окно или экран, дают поправить снимок в редакторе, переворачивают цвета в негатив и собирают серии шагов для лабораторных. Файлы, открытые для негатива, не изменяются.</div>
+          </div>
+        </div>
+        <div class="panel">
+          <h2 data-i18n="about.tech">Сборка</h2>
+          <table class="kv" id="ab-table"></table>
+        </div>
+        <div class="panel">
+          <h2 data-i18n="about.pc">Что программа делает с ПК</h2>
+          <ul class="plain">
+            <li data-i18n="about.pc.disk">Диск: пишет снимки только в выбранные тобой папки, а настройки, историю и копии — в папку данных. Файлы удаляются только в Корзину.</li>
+            <li data-i18n="about.pc.net">Сеть: не используется. Программа не выходит в интернет и ничего не отправляет.</li>
+            <li data-i18n="about.pc.mem">Память и процессор: в фоне ждёт горячую клавишу и почти ничего не занимает. Под нагрузкой — на момент снимка и в редакторе.</li>
+            <li data-i18n="about.pc.limit">Ограничения: размер истории задаётся на вкладке «Данные», автозапуск и звук выключаются в «Основных».</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Что нового -->
+      <div class="tabpane" id="pane-changelog">
+        <p class="muted" data-i18n="cl.intro">Все версии программы. До выхода установленной версии на ПК все выпуски считаются бетой.</p>
+        <div id="changelog"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="toast" hidden></div>
+<div id="modal" hidden><div class="modal-box"><div class="modal-head"><b data-i18n="modal.pick">Выбери снимок</b><button class="btn sm" id="modal-close" data-i18n="modal.close">Закрыть</button></div><div id="modal-grid" class="grid small"></div></div></div>
+
+<script src="shared.js"></script>
+<script src="i18n.js"></script>
+<script src="changelog.js"></script>
+<script src="invert-core.js"></script>
+<script src="editor.js"></script>
+<script src="invert.js"></script>
+<script src="series.js"></script>
+<script src="record.js"></script>
+<script src="video-core.js"></script>
+<script src="video-draw.js"></script>
+<script src="video.js"></script>
+<script src="settings-rec.js"></script>
+<script src="settings.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
